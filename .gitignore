@@ -1,0 +1,25 @@
+# Local IDE settings and generated builds
+.vs/
+*.suo
+*.user
+out/
+build/
+cmake-build-*/
+CMakeFiles/
+CMakeCache.txt
+Testing/
+.ninja_deps
+.ninja_log
+CMakeUserPresets.json
+# Legacy VS machine-local settings; shared configuration uses CMakePresets.json.
+/CMakeSettings.json
+
+# Local Python environment and caches
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# macOS local metadata
+.DS_Store
+._*
