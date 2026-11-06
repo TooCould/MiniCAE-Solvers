@@ -1,0 +1,8 @@
+BasedOnStyle: LLVM
+IndentWidth: 4
+UseTab: Never
+BreakBeforeBraces: Attach
+NamespaceIndentation: All
+AccessModifierOffset: -4
+ColumnLimit: 100
+LineEnding: LF
