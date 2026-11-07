@@ -2,7 +2,13 @@ cmake_minimum_required(VERSION 3.21)
 
 project(MiniCAE_Solvers VERSION 0.1.0 LANGUAGES CXX)
 
-add_executable(minicae_demo src/main.cpp "src/linalg/vector.cpp" "src/linalg/dense_matrix.cpp")
+add_executable(minicae_demo
+    src/main.cpp
+    src/linalg/vector.cpp
+    src/linalg/dense_matrix.cpp
+    src/linalg/coordinate_matrix.cpp
+    include/linalg/coordinate_matrix.hpp
+)
 target_include_directories(minicae_demo PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include")
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
@@ -30,6 +36,42 @@ endif()
 
 include(CTest)
 if(BUILD_TESTING)
+    add_executable(export_coordinate_matrix tests/linalg/export_coordinate_matrix.cpp
+        src/linalg/coordinate_matrix.cpp)
+    target_include_directories(export_coordinate_matrix PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include")
+    set_target_properties(export_coordinate_matrix PROPERTIES
+        CXX_STANDARD 17
+        CXX_STANDARD_REQUIRED YES
+        CXX_EXTENSIONS NO
+    )
+    if(MSVC)
+        target_compile_options(export_coordinate_matrix PRIVATE /W4 /utf-8 /EHsc)
+    else()
+        target_compile_options(export_coordinate_matrix PRIVATE -Wall -Wextra -Wpedantic)
+    endif()
+
+    add_executable(test_coordinate_matrix tests/linalg/test_coordinate_matrix.cpp
+        src/linalg/coordinate_matrix.cpp)
+    target_include_directories(test_coordinate_matrix PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include")
+    set_target_properties(test_coordinate_matrix PROPERTIES
+        CXX_STANDARD 17
+        CXX_STANDARD_REQUIRED YES
+        CXX_EXTENSIONS NO
+    )
+    if(MSVC)
+        target_compile_options(test_coordinate_matrix PRIVATE /W4 /utf-8 /EHsc)
+    else()
+        target_compile_options(test_coordinate_matrix PRIVATE -Wall -Wextra -Wpedantic)
+    endif()
+    foreach(coordinate_case IN ITEMS construction sparse_dimensions insertion duplicates
+            explicit_zeros bounds copy_assignment growth canonical_empty canonical_sort
+            canonical_duplicates canonical_cancellation canonical_idempotence
+            canonical_large_rows canonical_large_cols)
+        add_test(NAME coordinate_matrix_${coordinate_case} COMMAND test_coordinate_matrix ${coordinate_case})
+        set_tests_properties(coordinate_matrix_${coordinate_case} PROPERTIES
+            LABELS "linalg;coordinate_matrix" TIMEOUT 10)
+    endforeach()
+
     add_executable(export_dense_matrix tests/linalg/export_dense_matrix.cpp
         src/linalg/dense_matrix.cpp src/linalg/vector.cpp)
     target_include_directories(export_dense_matrix PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include")

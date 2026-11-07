@@ -6,11 +6,9 @@
 
 Phase 0：Windows 构建、运行、断点调试、CTest 和 Python 参考环境验证已通过；macOS 仍需实机验证。
 
-Phase 1：Vector 的基础访问、复制赋值、运算及边界行为已通过 Windows Debug / Release 的 CTest 验证。共 20 项测试（19 项 Vector 测试与 1 项启动测试），包括范数的极大值、极小值、混合量级、NaN 和无穷值。Windows Debug 的 11 组 NumPy 独立对照也已通过，Release NumPy 对照待运行。DenseMatrix 的基础结构、转置和矩阵向量乘法已通过 C++ 测试及 Windows Debug 的 12 组 NumPy 对照，矩阵乘矩阵已通过 C++ 测试，14 组 NumPy 对照待验收。
+Phase 1：Vector、DenseMatrix 和 CoordinateMatrix 的本轮实现已通过 C++ 测试。Windows Debug / Release 全工程各 56 项全部通过；Windows Debug 的独立对照已通过：Vector 11 组、DenseMatrix 转置与矩阵向量乘法 12 组、矩阵乘矩阵 14 组、CoordinateMatrix SciPy 14 组。下一功能块为 CSR 压缩行存储。Release 独立对照及 macOS 实机验证仍待完成。
 
 ## Visual Studio 文件夹开发
-
-DenseMatrix 已通过 21 项测试，覆盖基础结构、转置、矩阵向量乘法、矩阵乘矩阵、边界与尺寸异常。Windows Debug / Release 的全工程测试均为 41 项全部通过。Windows Debug 的 12 组 NumPy 独立对照已全部通过；Release NumPy 对照待运行，矩阵乘矩阵已通过 C++ 测试，14 组 NumPy 对照待验收。
 
 1. 使用“文件 → 打开 → 文件夹”打开项目根目录。
 2. 等待 CMake 读取 `CMakePresets.json`，选择 `windows-debug`（显示名称为 `Windows x64 Debug`）。
@@ -160,4 +158,30 @@ cmake --build --preset macos-debug --target export_dense_matrix
 ./.venv/bin/python python/validation/check_dense_matrix.py --matmul --exe out/build/macos-debug/export_dense_matrix --output-dir out/validation/dense_matrix/macos-debug
 ```
 
-成功时显示 `DenseMatrix matmul NumPy validation: PASS (14 cases)`。矩阵乘矩阵的记录使用 `matmul_` 文件名前缀，成功汇总为 `summary_matmul.csv`，与此前的 12 组结果分别保存。Windows Debug / Release 的 C++ 测试与手算导出已通过，NumPy 对照待实际运行验收。
+成功时显示 `DenseMatrix matmul NumPy validation: PASS (14 cases)`。矩阵乘矩阵的记录使用 `matmul_` 文件名前缀，成功汇总为 `summary_matmul.csv`，与此前的 12 组结果分别保存。Windows Debug / Release 的 C++ 测试与手算导出已通过；Windows Debug 的 14 组 NumPy 对照已验收，结果保存于 `out/validation/dense_matrix/windows-debug/summary_matmul.csv`。Release NumPy 对照及 macOS 实机验证待运行。
+
+## CoordinateMatrix 与 SciPy COO 独立对照
+
+`export_coordinate_matrix` 从标准输入读取矩阵尺寸、原始条目数及逐行的 `row col value`，调用项目的 `insert()` 和 `canonicalize()`，然后以 CSV 输出实际结果。CSV 使用 `type,row,col,value` 四列：第一条 `shape` 记录矩阵行数、列数与整理后的 nnz；其余 `entry` 记录行号、列号和值。行列号使用整数读写，数值保留足够的 double 往返精度。
+
+Python 脚本从同一份原始输入独立构造 SciPy `coo_matrix`，执行 `sum_duplicates()`、`eliminate_zeros()`，按行列排序参考结果，再逐项检查尺寸、nnz、坐标和值。对 C++ 输出不额外排序，确保能发现其顺序错误。全程使用稀疏三元组，不将大尺寸稀疏矩阵转换成稠密矩阵。
+
+### Windows CMD
+
+```bat
+cmake --build --preset windows-debug --target export_coordinate_matrix
+.venv\Scripts\python.exe python\validation\check_coordinate_matrix.py --exe out\build\windows-debug\export_coordinate_matrix.exe --output-dir out\validation\coordinate_matrix\windows-debug
+```
+
+也可以在 VS 中“生成 → 全部生成”，然后只执行 Python 命令。Release 对照将所有 `windows-debug` 替换为 `windows-release`。
+
+### macOS 终端
+
+```sh
+cmake --build --preset macos-debug --target export_coordinate_matrix
+./.venv/bin/python python/validation/check_coordinate_matrix.py --exe out/build/macos-debug/export_coordinate_matrix --output-dir out/validation/coordinate_matrix/macos-debug
+```
+
+14 组输入覆盖空形状、无序条目、多个重复项、完全抵消、中间和为零、显式零值、空行、超过 `2^53` 的大坐标及固定种子随机输入。重复项使用整数或可精确表示的小数，避免将不同浮点求和顺序混为坐标整理错误。
+
+成功时显示 `CoordinateMatrix SciPy validation: PASS (14 cases)`。输出目录保存每组原始输入、`*_cpp.csv`、`*_scipy.csv` 和成功汇总 `summary.csv`。失败时脚本返回非零退出码并移除旧成功汇总。Windows Debug / Release 导出程序已编译并通过手算和大坐标 CSV 检查；Windows Debug 的 14 组 SciPy 对照已验收，结果位于 `out/validation/coordinate_matrix/windows-debug/`；Release 对照及 macOS 实机验证待完成。
