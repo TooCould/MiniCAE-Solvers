@@ -11,6 +11,11 @@ Testing/
 .ninja_deps
 .ninja_log
 CMakeUserPresets.json
+
+# JetBrains IDE
+.idea/
+*.iml
+
 # Legacy VS machine-local settings; shared configuration uses CMakePresets.json.
 /CMakeSettings.json
 
