@@ -8,6 +8,8 @@ add_executable(minicae_demo
     src/linalg/dense_matrix.cpp
     src/linalg/coordinate_matrix.cpp
     include/linalg/coordinate_matrix.hpp
+    src/linalg/compressed_sparse_row.cpp
+    include/linalg/compressed_sparse_row.hpp
 )
 target_include_directories(minicae_demo PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include")
 
@@ -36,6 +38,34 @@ endif()
 
 include(CTest)
 if(BUILD_TESTING)
+    add_executable(export_compressed_sparse_row tests/linalg/export_compressed_sparse_row.cpp
+        src/linalg/compressed_sparse_row.cpp src/linalg/coordinate_matrix.cpp src/linalg/vector.cpp)
+    target_include_directories(export_compressed_sparse_row PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include")
+    set_target_properties(export_compressed_sparse_row PROPERTIES
+        CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES CXX_EXTENSIONS NO)
+    if(MSVC)
+        target_compile_options(export_compressed_sparse_row PRIVATE /W4 /utf-8 /EHsc)
+    else()
+        target_compile_options(export_compressed_sparse_row PRIVATE -Wall -Wextra -Wpedantic)
+    endif()
+
+    add_executable(test_compressed_sparse_row tests/linalg/test_compressed_sparse_row.cpp
+        src/linalg/compressed_sparse_row.cpp src/linalg/coordinate_matrix.cpp
+        src/linalg/vector.cpp src/linalg/dense_matrix.cpp)
+    target_include_directories(test_compressed_sparse_row PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include")
+    set_target_properties(test_compressed_sparse_row PROPERTIES
+        CXX_STANDARD 17 CXX_STANDARD_REQUIRED YES CXX_EXTENSIONS NO)
+    if(MSVC)
+        target_compile_options(test_compressed_sparse_row PRIVATE /W4 /utf-8 /EHsc)
+    else()
+        target_compile_options(test_compressed_sparse_row PRIVATE -Wall -Wextra -Wpedantic)
+    endif()
+    foreach(csr_case IN ITEMS construction conversion invalid_structure matvec dense_reference
+            diagonal norm_inf symmetry basic_ops_reference storage_scaling zero_based_indices)
+        add_test(NAME csr_${csr_case} COMMAND test_compressed_sparse_row ${csr_case})
+        set_tests_properties(csr_${csr_case} PROPERTIES LABELS "linalg;csr" TIMEOUT 10)
+    endforeach()
+
     add_executable(export_coordinate_matrix tests/linalg/export_coordinate_matrix.cpp
         src/linalg/coordinate_matrix.cpp)
     target_include_directories(export_coordinate_matrix PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/include")

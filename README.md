@@ -4,9 +4,9 @@
 
 ## 当前进度
 
-Phase 0：Windows 构建、运行、断点调试、CTest 和 Python 参考环境验证已通过；macOS 仍需实机验证。
+Phase 0：Windows 构建、运行、断点调试、CTest 和 Python 参考环境验证已通过；macOS Debug / Release 构建、运行、断点调试、CTest 和 Python 参考环境也已验证。
 
-Phase 1：Vector、DenseMatrix 和 CoordinateMatrix 的本轮实现已通过 C++ 测试。Windows Debug / Release 全工程各 56 项全部通过；Windows Debug 的独立对照已通过：Vector 11 组、DenseMatrix 转置与矩阵向量乘法 12 组、矩阵乘矩阵 14 组、CoordinateMatrix SciPy 14 组。下一功能块为 CSR 压缩行存储。Release 独立对照及 macOS 实机验证仍待完成。
+Phase 1：Vector、DenseMatrix、COO、CSR、SpMV 及基础矩阵操作已实现。macOS Debug / Release 各 67 项 CTest 通过；独立对照分别为 Vector 11 组、DenseMatrix 12 + 14 组、COO 14 组、CSR 26 组，均通过。Windows Release 既有模块独立对照及新增 CSR 验证待完成。详见 `docs/MiniCAE-Solvers-Framework.md`。
 
 ## Visual Studio 文件夹开发
 
@@ -116,7 +116,7 @@ macOS 首次构建前先执行 `cmake --preset macos-debug`。验证 Release 时
 
 成功时显示 `Vector NumPy validation: PASS (11 cases)`。输入、C++ 结果、NumPy 结果与成功汇总 `summary.csv` 保存在指定的输出目录；失败时脚本返回非零退出码，且不保留上一次的成功汇总。
 
-当前对照程序的 Windows Debug / Release 构建与手算样例输出已验证；Windows Debug 的 11 组 NumPy 独立对照已通过，结果保存于 `out/validation/vector/windows-debug/`。Release NumPy 对照及 macOS 实机验证待运行。NaN、无穷值及异常行为仍由 C++ CTest 覆盖，本脚本对照有限输入下的数值结果。
+当前对照程序的 Windows Debug / Release 构建与手算样例输出已验证；Windows Debug 的 11 组 NumPy 独立对照已通过，结果保存于 `out/validation/vector/windows-debug/`。macOS Debug / Release 的 11 组对照均已通过；Windows Release 对照待完成。NaN、无穷值及异常行为仍由 C++ CTest 覆盖，本脚本对照有限输入下的数值结果。
 
 ## DenseMatrix 转置与矩阵向量乘法的 NumPy 对照
 
@@ -138,7 +138,7 @@ cmake --build --preset macos-debug --target export_dense_matrix
 ./.venv/bin/python python/validation/check_dense_matrix.py --exe out/build/macos-debug/export_dense_matrix --output-dir out/validation/dense_matrix/macos-debug
 ```
 
-首次配置先执行 `cmake --preset macos-debug`。成功时显示 `DenseMatrix NumPy validation: PASS (12 cases)`，输入、C++ 结果、NumPy 结果及成功汇总保存在指定输出目录。Windows Debug 的 12 组 NumPy 对照已通过，结果位于 `out/validation/dense_matrix/windows-debug/`。Release NumPy 对照及 macOS 实机验证待运行。
+首次配置先执行 `cmake --preset macos-debug`。成功时显示 `DenseMatrix NumPy validation: PASS (12 cases)`，输入、C++ 结果、NumPy 结果及成功汇总保存在指定输出目录。Windows Debug 的 12 组 NumPy 对照已通过，结果位于 `out/validation/dense_matrix/windows-debug/`。macOS Debug / Release 的 12 组对照均已通过；Windows Release 对照待完成。
 
 ### 矩阵乘矩阵
 
@@ -158,7 +158,7 @@ cmake --build --preset macos-debug --target export_dense_matrix
 ./.venv/bin/python python/validation/check_dense_matrix.py --matmul --exe out/build/macos-debug/export_dense_matrix --output-dir out/validation/dense_matrix/macos-debug
 ```
 
-成功时显示 `DenseMatrix matmul NumPy validation: PASS (14 cases)`。矩阵乘矩阵的记录使用 `matmul_` 文件名前缀，成功汇总为 `summary_matmul.csv`，与此前的 12 组结果分别保存。Windows Debug / Release 的 C++ 测试与手算导出已通过；Windows Debug 的 14 组 NumPy 对照已验收，结果保存于 `out/validation/dense_matrix/windows-debug/summary_matmul.csv`。Release NumPy 对照及 macOS 实机验证待运行。
+成功时显示 `DenseMatrix matmul NumPy validation: PASS (14 cases)`。矩阵乘矩阵的记录使用 `matmul_` 文件名前缀，成功汇总为 `summary_matmul.csv`，与此前的 12 组结果分别保存。Windows Debug / Release 的 C++ 测试与手算导出已通过；Windows Debug 的 14 组 NumPy 对照已验收，结果保存于 `out/validation/dense_matrix/windows-debug/summary_matmul.csv`。macOS Debug / Release 的 14 组对照均已通过；Windows Release 对照待完成。
 
 ## CoordinateMatrix 与 SciPy COO 独立对照
 
@@ -184,4 +184,26 @@ cmake --build --preset macos-debug --target export_coordinate_matrix
 
 14 组输入覆盖空形状、无序条目、多个重复项、完全抵消、中间和为零、显式零值、空行、超过 `2^53` 的大坐标及固定种子随机输入。重复项使用整数或可精确表示的小数，避免将不同浮点求和顺序混为坐标整理错误。
 
-成功时显示 `CoordinateMatrix SciPy validation: PASS (14 cases)`。输出目录保存每组原始输入、`*_cpp.csv`、`*_scipy.csv` 和成功汇总 `summary.csv`。失败时脚本返回非零退出码并移除旧成功汇总。Windows Debug / Release 导出程序已编译并通过手算和大坐标 CSV 检查；Windows Debug 的 14 组 SciPy 对照已验收，结果位于 `out/validation/coordinate_matrix/windows-debug/`；Release 对照及 macOS 实机验证待完成。
+成功时显示 `CoordinateMatrix SciPy validation: PASS (14 cases)`。输出目录保存每组原始输入、`*_cpp.csv`、`*_scipy.csv` 和成功汇总 `summary.csv`。失败时脚本返回非零退出码并移除旧成功汇总。Windows Debug / Release 导出程序已编译并通过手算和大坐标 CSV 检查；Windows Debug 的 14 组 SciPy 对照已验收，结果位于 `out/validation/coordinate_matrix/windows-debug/`；macOS Debug / Release 的 14 组对照均已通过；Windows Release 对照待完成。
+
+## CSR 转换与基础操作的 SciPy 独立对照
+
+`export_compressed_sparse_row` 调用实际 C++ 实现，与 SciPy 对照 CSR 结构、SpMV、主对角线、无穷范数和对称性。26 组输入覆盖空形状、重复项、抵消、容差边界和固定种子随机矩阵。
+
+### Windows CMD
+
+```bat
+cmake --build --preset windows-debug --target export_compressed_sparse_row
+.venv\Scripts\python.exe python\validation\check_compressed_sparse_row.py --exe out\build\windows-debug\export_compressed_sparse_row.exe --output-dir out\validation\compressed_sparse_row\windows-debug
+```
+
+### macOS 终端
+
+```sh
+cmake --build --preset macos-debug --target export_compressed_sparse_row
+./.venv/bin/python python/validation/check_compressed_sparse_row.py --exe out/build/macos-debug/export_compressed_sparse_row --output-dir out/validation/compressed_sparse_row/macos-debug
+```
+
+首次构建前先执行对应的 `cmake --preset`。Release 将命令中的 `debug` 替换为 `release`。
+
+成功时显示 `CSR SciPy validation: PASS (26 cases)`，输入、C++ 结果、SciPy 结果和 `summary.csv` 保存在指定目录。macOS Debug / Release 各 26 组已通过；Windows 待验证。

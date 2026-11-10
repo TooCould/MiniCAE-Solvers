@@ -1,8 +1,8 @@
 #include "linalg/coordinate_matrix.hpp"
 
+#include <algorithm> // std::sort
+#include <numeric>   // std::iota
 #include <stdexcept>
-#include <algorithm>  // std::sort
-#include <numeric>    // std::iota
 
 minicae::CoordinateMatrix::CoordinateMatrix(std::size_t rows, std::size_t cols)
     : rows_(rows), cols_(cols) {}
@@ -45,11 +45,24 @@ void minicae::CoordinateMatrix::canonicalize() {
                                "col_indices, and values");
     }
 
+    bool is_canonical = true;
+
+    for (std::size_t i = 1; i < length; ++i) {
+        if (row_indices_[i] < row_indices_[i - 1] ||
+            (row_indices_[i] == row_indices_[i - 1] && col_indices_[i] <= col_indices_[i - 1])) {
+            is_canonical = false;
+            break;
+        }
+    }
+
+    if (is_canonical) {
+        return;
+    }
+
     std::vector<std::size_t> order(length, 0);
     std::iota(order.begin(), order.end(), std::size_t{0});
 
-    std::sort(order.begin(), order.end(), 
-        [this](std::size_t a, std::size_t b) {
+    std::sort(order.begin(), order.end(), [this](std::size_t a, std::size_t b) {
         if (row_indices_[a] != row_indices_[b]) {
             return row_indices_[a] < row_indices_[b];
         }
@@ -57,8 +70,7 @@ void minicae::CoordinateMatrix::canonicalize() {
             return col_indices_[a] < col_indices_[b];
         }
         return a < b;
-        }
-    );
+    });
 
     std::vector<std::size_t> sorted_rows;
     std::vector<std::size_t> sorted_cols;
@@ -75,11 +87,9 @@ void minicae::CoordinateMatrix::canonicalize() {
         std::size_t j = i;
         while (++j < length) {
             idx = order[j];
-            if (row_indices_[idx] == row &&
-                col_indices_[idx] == col) {
+            if (row_indices_[idx] == row && col_indices_[idx] == col) {
                 sum += values_[idx];
-            }
-            else {
+            } else {
                 break;
             }
         }

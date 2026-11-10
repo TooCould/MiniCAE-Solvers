@@ -204,7 +204,7 @@ Python 读取 C++ 输出后，使用 SciPy / NumPy
 
 ## 4. 开发推进总览
 
-**清单与进度说明（更新于 2026-11-06）：** `- [x]` 表示已有实现或验收证据，`- [ ]` 表示未完成或尚未验证。父项只有在全部子项完成时才勾选；Windows 与 macOS 的实机验证分别记录。Phase 0 的 Windows 环境已通过验收，Vector 的 Windows Debug NumPy 独立对照已通过，Vector 与 DenseMatrix 的本轮 Windows Debug NumPy 对照已验收，CoordinateMatrix 的 Windows Debug SciPy 对照也已验收，Phase 1 当前模块为 CSR；Phase 2–6 未开始。
+**清单与进度说明（更新于 2026-11-10）：** `- [x]` 表示已有实现或验收证据，`- [ ]` 表示未完成或尚未验证。父项全部完成后勾选；Windows 与 macOS 分别记录。
 
 V1.0 按以下顺序推进，不并行铺开多个未完成模块。Phase 0 建立横向设施，
 Phase 1 对应基础层，Phase 2 准备应用层测试问题，Phase 3–5 对应算法层，
@@ -212,8 +212,8 @@ Phase 6 完成横向 PETSc 集成并扩展应用层对照实验。CTest 与 Pyth
 
 | 阶段 | 开发内容 | 主要成果 | 课程对应 | 当前进度 |
 | --- | --- | --- | --- | --- |
-| Phase 0 | 项目基础设施 | 可编译、可测试的工程骨架 | C++ / CMake | Windows 已验收；macOS 待实机验证 |
-| Phase 1 | 矩阵与向量 | Dense、COO、CSR、SpMV | 1.1–1.3 | Vector、DenseMatrix 与 CoordinateMatrix 本轮实现、C++ 测试及 Windows Debug 独立对照完成；当前模块为 CSR |
+| Phase 0 | 项目基础设施 | 可编译、可测试的工程骨架 | C++ / CMake | Windows 与 macOS 基础环境均已验收 |
+| Phase 1 | 矩阵与向量 | Dense、COO、CSR、SpMV | 1.1–1.3 | 基础功能及 macOS Debug / Release 验证完成；Windows 补验待完成 |
 | Phase 2 | 标准测试系统与 Poisson 装配 | 标准矩阵、Poisson、边界处理、数值验证 | 1.4–1.7、6.4 | 未开始 |
 | Phase 3 | 迭代求解器 | Jacobi、GS、CG、GMRES(m) | 2.1–2.5 | 未开始 |
 | Phase 4 | 预条件器 | Jacobi、ILU(0)、ICC(0) | 3.1–3.6 | 未开始 |
@@ -234,7 +234,7 @@ Phase 6 完成横向 PETSc 集成并扩展应用层对照实验。CTest 与 Pyth
 
 ## 5. Phase 0：项目基础设施
 
-**进度：Windows 侧已完成；macOS 实机验证待完成。**
+**进度：Windows 与 macOS 构建、运行、断点调试、CTest 和 Python 参考环境均已完成验证。**
 
 ### 5.1 目标
 
@@ -251,7 +251,8 @@ Phase 6 完成横向 PETSc 集成并扩展应用层对照实验。CTest 与 Pyth
 - [x] 建立统一的构建、测试命令。
 - [x] Windows Debug / Release 构建与 CTest 验证通过。
 - [x] Windows VS 断点调试通过。
-- [ ] macOS 本机配置、构建、CTest 和 Python 环境实机验证通过。
+- [x] macOS 本机配置、构建、CTest 和 Python 环境实机验证通过。
+- [x] macOS 断点调试通过。
 
 ### 5.3 建议目录结构
 
@@ -310,7 +311,7 @@ MiniCAE/
 
 **课程对应：1.1、1.2、1.3。**
 
-**进度：进行中，Vector 与 DenseMatrix 的实现、C++ 测试及本轮 Windows Debug NumPy 对照已验收，CoordinateMatrix 的 Windows Debug SciPy 对照也已通过，当前实现模块为 CSR；Release NumPy 对照与 macOS 实机验证仍单独待完成。**
+**进度：基础功能已实现，macOS Debug / Release 各 67 项 CTest 及各模块独立对照通过；Windows 补验待完成。**
 
 ### 6.1 目标
 
@@ -318,7 +319,7 @@ MiniCAE/
 
 ### 6.2 Vector
 
-**进度：实现与 Windows C++ 测试已完成；Windows Debug 的 11 组 NumPy 独立对照已通过。Release NumPy 对照和 macOS 实机验证尚未完成。**
+**进度：实现及 C++ 测试完成；Windows Debug、macOS Debug / Release 的 11 组 NumPy 对照通过。Windows Release 对照待完成。**
 
 - [x] 实现：
   - [x] 指定长度创建；
@@ -344,7 +345,7 @@ MiniCAE/
   
 ### 6.3 DenseMatrix
 
-**进度：基础结构、矩阵转置与矩阵向量乘法已通过 C++ 测试；Windows Debug / Release 各 41 项全部通过（21 项 DenseMatrix、19 项 Vector、1 项启动测试）。Windows Debug 的 12 组 NumPy 对照已全部通过；Windows Debug 的 14 组矩阵乘矩阵 NumPy 对照也已全部通过；Release NumPy 对照及 macOS 实机验证待运行。**
+**进度：实现及 C++ 测试完成；Windows Debug、macOS Debug / Release 的转置与矩阵向量乘法 12 组、矩阵乘矩阵 14 组 NumPy 对照通过。Windows Release 对照待完成。**
 
 - [x] 实现：
   - [x] 指定行列数创建，支持零初始化及指定初始值；
@@ -371,7 +372,7 @@ MiniCAE/
   
 ### 6.4 COO
 
-**进度：Coordinate Format 类名为 `CoordinateMatrix`。三元组存储、插入、排序、重复项累加和零值清理已通过 15 项 C++ 测试；Windows Debug / Release 全工程各 56 项全部通过。Windows Debug 的 14 组 SciPy 独立对照已验收，结果位于 `out/validation/coordinate_matrix/windows-debug/`。Release SciPy 对照及 macOS 实机验证仍待运行。`insert()` 忽略零值（先检查坐标边界），合并前允许重复坐标；`nnz()` 统计当前存储条目数。**
+**进度：`CoordinateMatrix` 实现及 C++ 测试完成；Windows Debug、macOS Debug / Release 的 14 组 SciPy 对照通过。Windows Release 对照待完成。**
 
 - [x] 实现：
   - [x] row；
@@ -396,17 +397,17 @@ MiniCAE/
   
 ### 6.5 CSR
 
-**进度：当前功能块，待实现压缩行存储、COO → CSR 转换、结构检查和 SpMV。**
+**进度：`CompressedSparseRow` 存储、COO → CSR、结构检查及 SpMV 已实现；2026-11-10 macOS Debug / Release 全工程各 67 项 CTest 全部通过，其中 CSR 11 组；CSR SciPy 独立对照在两种配置下各 26 组通过。Windows 新增代码验证待完成。**
 
-- [ ] 实现：
-  - [ ] values；
-  - [ ] col_indices；
-  - [ ] row_ptr；
-  - [ ] COO → CSR；
-  - [ ] CSR 结构合法性检查；
-  - [ ] CSR SpMV。
+- [x] 实现：
+  - [x] values；
+  - [x] col_indices；
+  - [x] row_ptr；
+  - [x] COO → CSR；
+  - [x] CSR 结构合法性检查；
+  - [x] CSR SpMV。
   
-- [ ] 检查以下 CSR 长度、末端指针及单调性约束：
+- [x] 检查以下 CSR 长度、末端指针及单调性约束：
 
 $$
 \operatorname{len}(row_ptr)=n+1
@@ -429,24 +430,32 @@ $$
 
 ### 6.6 基础矩阵操作
 
+**进度：对角提取、无穷范数与对称性检查已完成，C++ 测试及 macOS Debug / Release 独立对照通过；CSR 转置待选做。**
+
 - [ ] 实现：
-  - [ ] 矩阵维度查询；
-  - [ ] nnz 查询；
-  - [ ] 对角元素提取；
-  - [ ] 矩阵无穷范数或其他明确实现的基础范数；
-  - [ ] 对称性检查；
-  - [ ] CSR 转置（若实现成本可控，可放在本阶段末尾）。
-  
+  - [x] 矩阵维度查询；
+  - [x] nnz 查询；
+  - [x] 对角元素提取；
+  - [x] 矩阵无穷范数；
+  - [x] 对称性检查；
+  - [ ] CSR 转置（可选扩展）。
+
+- [x] 测试：
+  - [x] 空形状、非方阵、缺失对角项及空行；
+  - [x] 对称性容差边界、缺失对应项与 NaN / Inf；
+  - [x] 固定种子稠密参考对照；
+  - [x] macOS Debug / Release 的 26 组 CSR SciPy 对照。
+
 CSC 暂不作为 V1.0 核心数据结构；在直接法需要时再决定是否补充。
 
 ### 6.7 阶段验收
 
-- [ ] COO → CSR 转换正确。
-- [ ] 重复 COO entries 能正确累加。
-- [ ] CSR 结构检查能够发现非法 row_ptr 和列索引。
-- [ ] SpMV 与 DenseMatrix、NumPy 结果一致。
-- [ ] 不同矩阵规模下，CSR 存储量符合 (O(nnz+n)) 的预期。
-- [ ] 代码中明确区分数学编号和 0-based 数组索引。
+- [x] COO → CSR 转换正确。
+- [x] 重复 COO entries 能正确累加。
+- [x] CSR 结构检查能够发现非法 row_ptr 和列索引。
+- [x] SpMV 与 DenseMatrix、NumPy / SciPy 结果一致：macOS Debug / Release 独立对照各 26 组通过。
+- [x] 不同矩阵规模下，CSR 存储量符合 (O(nnz+n)) 的预期：行数、nnz 和列数独立变化测试通过。
+- [x] 代码中明确区分数学编号和 0-based 数组索引，首末索引及越界测试通过。
 
 **完成标志：** 能够独立创建矩阵 (A) 和向量 (x)，计算
 (y=Ax)，并通过独立参考结果验证。
@@ -1233,26 +1242,22 @@ Phase 10 MPI / OpenMP
 Phase 11 Interview / Project Integration
 ```
 
-**当前进度：Phase 0 的 Windows 验收已完成，Phase 1 进行中。**
+**当前进度：Phase 1 基础功能及 macOS 验证完成，Windows 补验待完成。**
 
-- [x] Windows C++17 / CMake 工程、Debug / Release 预设与最小程序运行。
-- [x] Windows VS 断点调试、CTest 与 Python 参考环境验证。
-- [x] Vector 实现及 C++ 测试：Windows Debug / Release 各 20 项测试全部通过。
-- [x] Vector 与 NumPy 的独立参考对照（包括 AXPY）：Windows Debug 的 11 组输入全部通过。
-- [ ] 补充 Windows Release 的 Vector NumPy 对照。
-- [x] DenseMatrix 存储、尺寸查询、元素读写、行列边界及尺寸溢出检查：9 项矩阵测试通过。
-- [x] DenseMatrix 转置与矩阵向量乘法：Windows Debug / Release 各 35 项全工程测试通过。
-- [x] DenseMatrix 转置与矩阵向量乘法的 12 组 NumPy 独立对照：Windows Debug 全部通过。
-- [ ] 补充 Windows Release 的 DenseMatrix NumPy 对照。
-- [x] DenseMatrix 小规模矩阵乘矩阵及 C++ 测试：Windows Debug / Release 各 41 项全工程测试通过。
-- [x] DenseMatrix 矩阵乘矩阵的 14 组 NumPy 独立对照：Windows Debug 全部通过。
-- [x] CoordinateMatrix 三元组存储、插入及边界检查：8 项新测试通过，Windows Debug / Release 全工程各 49 项通过。
-- [x] CoordinateMatrix 重复项合并、零值清理及 C++ 测试：Windows Debug / Release 各 56 项全工程测试通过。
-- [x] CoordinateMatrix 的 SciPy 独立对照：Windows Debug 的 14 组输入全部通过。
-- [ ] 补充 Windows Release 的 CoordinateMatrix SciPy 对照。
-- [ ] macOS 本机构建、CTest 与 Python 环境实机验证。
+- [x] Windows Debug / Release 构建及既有模块 CTest。
+- [x] Windows VS 断点调试与 Python 参考环境验证。
+- [x] Windows Debug 的 Vector、DenseMatrix 与 CoordinateMatrix 独立对照。
+- [x] macOS Debug / Release 全工程各 67 项 CTest。
+- [x] macOS Debug / Release 的 Vector NumPy 对照各 11 组。
+- [x] macOS Debug / Release 的 DenseMatrix NumPy 对照各 12 + 14 组。
+- [x] macOS Debug / Release 的 CoordinateMatrix SciPy 对照各 14 组。
+- [x] macOS Debug / Release 的 CSR SciPy 对照各 26 组。
+- [x] macOS Python 参考环境验证。
+- [ ] Windows Release 的 Vector、DenseMatrix 与 CoordinateMatrix 独立对照。
+- [ ] Windows Debug / Release 的 CSR 构建、CTest 与 SciPy 对照。
+- [x] macOS 断点调试验证。
 
-后续按 DenseMatrix → COO → CSR → SpMV 推进。PETSc / MUMPS 留到 Phase 6，在固定环境中验证。
+下一步完成 Windows 补验，再进入 Phase 2 标准测试矩阵。PETSc / MUMPS 留到 Phase 6。
 
 ------------------------------------------------------------------------
 
